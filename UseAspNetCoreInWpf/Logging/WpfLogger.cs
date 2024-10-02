@@ -1,5 +1,6 @@
 ﻿using System.Text;
 using System.Windows.Controls;
+using System.Windows.Threading;
 using Microsoft.Extensions.Logging;
 
 namespace UseAspNetCoreInWpf.Logging
@@ -17,8 +18,8 @@ namespace UseAspNetCoreInWpf.Logging
             _textBox = textBox;
         }
 
-        public IDisposable? BeginScope<TState>(TState state) where TState : notnull => throw new NotImplementedException();
-        public bool IsEnabled(LogLevel logLevel) => throw new NotImplementedException();
+        public IDisposable? BeginScope<TState>(TState state) where TState : notnull => null;
+        public bool IsEnabled(LogLevel logLevel) => true;
         public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
         {
             _logItems.Enqueue(formatter.Invoke(state, exception));
@@ -33,8 +34,11 @@ namespace UseAspNetCoreInWpf.Logging
                 _stringBuilder.AppendLine(item);
             }
 
-            _textBox.Text = _stringBuilder.ToString();
-            _stringBuilder.Clear();
+            App.Current.Dispatcher.Invoke(() =>
+            {
+                _textBox.Text = _stringBuilder.ToString();
+                _stringBuilder.Clear();
+            });
         }
     }
 
